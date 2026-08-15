@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.12"  # PEP 701: backslashes inside f-string expressions
 # dependencies = [
 #     "drawdata==0.3.8",
 #     "marimo",
