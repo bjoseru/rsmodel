@@ -2,7 +2,6 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
-build/
 dist/
 .venv/
 venv/
@@ -18,6 +17,7 @@ __marimo__/
 
 # Generated output
 figures/
+build/
 
 # OS / editor
 .DS_Store

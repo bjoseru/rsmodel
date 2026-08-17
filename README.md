@@ -55,6 +55,8 @@ and change the code.
 `interactive_playground.py` opens in slides mode via
 [`notebooks/layouts/interactive_playground.slides.json`](notebooks/layouts/interactive_playground.slides.json).
 Keep that file next to the notebook, or marimo falls back to the normal vertical layout.
+The layout is positional — one entry per cell — so reordering cells silently reshuffles
+the slides rather than raising an error.
 
 ### Requirements
 
@@ -78,9 +80,9 @@ constraint is in each notebook's header.
 │       ├── core.py               # RSModel, RS2Model, Patient
 │       ├── analysis.py           # Jacobians, eigenvalues, Lyapunov verification
 │       └── utils.py              # predefined scenarios, custom stimuli
-├── molab/                        # generated single-file build (see below)
 ├── tools/
-│   └── build_molab.py            # generator for molab/
+│   └── export_playground.py      # notebook -> static WASM site
+├── .github/workflows/pages.yml   # rebuild + deploy on push
 └── LICENSE
 ```
 
@@ -123,35 +125,117 @@ analyze_corner_equilibria(RSModel(), e_value=0.5)     # stability of the four co
 
 `RS2Model` is the variant with the $3\,s\,r$ coupling term used for comparison in the paper.
 
-## Running the playground on molab
+## Publishing the playground on the web
 
-[molab](https://molab.marimo.io) hosts a marimo notebook as a single file and resolves its
-dependencies from PyPI, so it cannot follow the `[tool.uv.sources]` path override that
-points at `../rsmodel`. [`tools/build_molab.py`](tools/build_molab.py) solves this by
-inlining the package:
-
-```bash
-uv run tools/build_molab.py
-# -> molab/interactive_playground_molab.py
-```
-
-The generated file is the original notebook with a `with app.setup:` block prepended. That
-block holds the `rsmodel` sources verbatim as strings and registers them in `sys.modules`
-before any cell runs, so every `import rsmodel` in the notebook body works unchanged. The
-`rsmodel` dependency and the `[tool.uv.sources]` table are dropped from the PEP 723 header,
-and `layout_file=` is removed because the layouts JSON is not uploaded. Nothing else
-differs from `notebooks/interactive_playground.py`.
-
-To publish: open [molab.marimo.io](https://molab.marimo.io), create a new notebook, and
-paste or upload `molab/interactive_playground_molab.py`. No GitHub access is required, so
-this works while the repository is still private.
-
-The generated file is committed, which means it can go stale. Rebuild after any change to
-`rsmodel/` or to the source notebook, and verify with:
+[`tools/export_playground.py`](tools/export_playground.py) turns the interactive
+playground into a static WebAssembly site — it runs entirely in the visitor's browser via
+[Pyodide](https://pyodide.org), with no Python install, no server and no backend:
 
 ```bash
-uv run tools/build_molab.py --check     # non-zero exit + diff if stale
+uv run tools/export_playground.py            # -> build/site/
+uv run tools/export_playground.py --serve    # ...and preview at localhost:8000
 ```
+
+The script does three things and reports on each:
+
+1. **Bundle.** The `rsmodel` package is inlined into a `with app.setup:` block that
+   registers it in `sys.modules`, so the notebook's `import rsmodel` resolves with nothing
+   installed. Pyodide cannot see this repository, and `[tool.uv.sources]` path overrides
+   mean nothing to it, so vendoring is what makes the notebook portable. The `rsmodel`
+   dependency and the path override are stripped from the PEP 723 header.
+2. **Export.** `marimo export html-wasm --mode run --no-show-code` renders the bundle. The
+   slides layout is staged as a sibling `.json` so marimo's own `inline_layout_file()`
+   folds it into `index.html` — passing an already-inlined `data:` URI makes the exporter
+   treat the base64 blob as a filename and fail with *File name too long*.
+3. **Verify.** `index.html` is parsed back and checked: run mode, code hidden, slides
+   layout present with one entry per cell, `rsmodel` actually embedded. Anything wrong is
+   a hard failure rather than a quietly broken site.
+
+Useful flags:
+
+| flag | effect |
+| --- | --- |
+| `-o DIR` | output directory (default `build/site`) |
+| `--serve` / `--port N` | serve the result locally when done |
+| `--show-code` | show the code in the app instead of hiding it |
+| `--execute` | run the notebook first and embed outputs, so the page shows content while Pyodide boots |
+| `--no-hint` | suppress the deployment notes (used by CI) |
+
+Any of the three notebooks can be passed as a positional argument.
+
+### Deploying to GitHub Pages
+
+Every asset path in the export is relative, so the site works unchanged at a user site
+(`user.github.io`) or a project site (`user.github.io/rsmodel/`).
+
+**With Actions** — [`.github/workflows/pages.yml`](.github/workflows/pages.yml) rebuilds
+and deploys on every push that touches `notebooks/`, `rsmodel/rsmodel/` or the export
+script. Enable it once under *Settings → Pages → Source → GitHub Actions*. Nothing
+generated gets committed.
+
+**Without Actions** — export into a committed folder:
+
+```bash
+uv run tools/export_playground.py -o docs
+git add -f docs && git commit -m "publish site" && git push
+```
+
+then *Settings → Pages → Source → Deploy from a branch → main + /docs*. Note the `-f`:
+`build/` and generated output are gitignored.
+
+Caveats worth knowing:
+
+- Pages on a **private** repository requires a paid GitHub plan; public repositories are free.
+- The first load pulls Pyodide and the scientific stack (tens of MB) from a CDN. It is
+  slow once, then browser-cached.
+- `file://` will not work — WASM needs to be served over HTTP. Use `--serve` to test.
+- Pyodide runs pure-Python wheels plus a set of precompiled scientific packages. numpy,
+  scipy, matplotlib and sympy are supported; `drawdata` is a pure-Python `anywidget`, so
+  it installs, but the drawing widget is the piece most worth clicking through locally
+  before you publish.
+
+### Will this still work in ten years?
+
+Partly. The exported site splits into two halves with very different lifetimes.
+
+**Your bytes — permanent.** Everything under `build/site/` (about 710 files, 26 MB: the
+marimo frontend, fonts, icons, `index.html` with the notebook and `rsmodel` embedded) is
+copied into the deployment. Nothing there expires. A GitHub Pages deployment keeps serving
+until it is replaced or Pages is switched off; the Actions *artifact* that carried it has a
+short retention, but its expiry does not take the live site down — it only means a redeploy
+requires re-running the build.
+
+**Third-party runtime — not under your control.** The page is a static shell that fetches
+the Python runtime at load time. Three external dependencies, hardcoded in marimo's
+compiled worker with no configuration hook to redirect them:
+
+| fetched from | what for | if it disappears |
+| --- | --- | --- |
+| `cdn.jsdelivr.net/pyodide/v.../full/` | the Pyodide runtime and its scientific wheels | Python never boots |
+| `wasm.marimo.app/pyodide-lock.json` | marimo's package lock for that Pyodide build | Python never boots |
+| `pypi.org` (via `micropip`) | packages outside the lock, e.g. `drawdata` | that widget fails to load |
+
+So the honest answer is that the interactive page depends on jsDelivr and on marimo
+continuing to host a small JSON file. Neither is likely to vanish soon, and neither is a
+promise.
+
+Three things make this degrade gracefully rather than break:
+
+1. **Build with `--execute`** (the Pages workflow does). Outputs are rendered into the HTML
+   at build time, so a visitor sees the figures and the full text of the slides even if
+   Pyodide never loads. Only the sliders and the drawing widget stop working.
+2. **Archive the built site, not just the source.** `git add -f` a copy of `build/site`, or
+   attach it to a tagged release, so the exact bytes that worked survive independently of
+   any rebuild. A rebuild years from now may not reproduce — `uvx marimo` is unpinned and
+   the action versions will have moved.
+3. **Do not let the URL be the citable artifact.** Cite the repository (ideally with a
+   Zenodo DOI, which mints an immutable archive of a tagged release) and offer the
+   playground as a convenience link.
+
+If you ever need true self-containment, the remaining option is to vendor Pyodide into the
+site and patch the two hardcoded URLs in `build/site/assets/worker-*.js` after export. That
+works but is brittle across marimo releases, so it is only worth doing once the paper is
+final and the notebook has stopped changing.
 
 ## License
 
