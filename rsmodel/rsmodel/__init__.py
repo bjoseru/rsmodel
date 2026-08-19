@@ -30,7 +30,7 @@ For mathematical analysis:
     >>> corner_analysis = analyze_corner_equilibria(model, e_value=0.5)
 """
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __author__ = "Björn S. Rüffer & Michael Schönlein"
 __license__ = "MIT"
 

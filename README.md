@@ -2,7 +2,7 @@
 
 [![playground](https://img.shields.io/badge/playground-rsmodel.org-2f6f4e)](https://rsmodel.org)
 [![PyPI](https://img.shields.io/pypi/v/rsmodel)](https://pypi.org/project/rsmodel/)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22018288.svg)](https://doi.org/10.5281/zenodo.22018288)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Reproducible code for the manuscript
@@ -369,7 +369,7 @@ machine-readable version; GitHub renders a "Cite this repository" button from it
   title     = {{rsmodel}: a resilience--symptom dynamical model of depression},
   year      = {2026},
   publisher = {Zenodo},
-  doi       = {10.5281/zenodo.XXXXXXX},
+  doi       = {10.5281/zenodo.22018288},
   url       = {https://rsmodel.org},
   note      = {Code: \url{https://github.com/bjoseru/rsmodel}}
 }

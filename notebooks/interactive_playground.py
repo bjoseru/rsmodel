@@ -450,6 +450,52 @@ def _(re):
 
 
 @app.cell(hide_code=True)
+def citation(mo):
+    mo.md(r"""
+    # Cite this work
+
+    This playground is the interactive companion to
+
+    > Björn S. Rüffer & Michael Schönlein,
+    > *A mathematical model for depression and resilience*.
+
+    The model, the notebooks and the code behind this page are open source under the MIT
+    license and permanently archived. If they are useful in your own work, please cite the
+    software alongside the article:
+
+    ```bibtex
+    @misc{rueffer_schoenlein_rsmodel_software,
+      author    = {R{\"u}ffer, Bj{\"o}rn S. and Sch{\"o}nlein, Michael},
+      title     = {{rsmodel}: a resilience--symptom dynamical model of depression},
+      year      = {2026},
+      publisher = {Zenodo},
+      doi       = {10.5281/zenodo.22018288},
+      url       = {https://rsmodel.org}
+    }
+    ```
+
+    That DOI resolves to the newest archived version; each individual release also has its
+    own DOI, which is the one to use when the exact state matters.
+
+    | | |
+    | --- | --- |
+    | Source code | [github.com/bjoseru/rsmodel](https://github.com/bjoseru/rsmodel) |
+    | Archived release | [doi:10.5281/zenodo.22018288](https://doi.org/10.5281/zenodo.22018288) |
+    | Python package | [pypi.org/project/rsmodel](https://pypi.org/project/rsmodel/) |
+    | This page | [rsmodel.org](https://rsmodel.org) |
+
+    Everything here runs on your own machine too, with nothing installed but
+    [`uv`](https://docs.astral.sh/uv/):
+
+    ```bash
+    git clone https://github.com/bjoseru/rsmodel.git && cd rsmodel
+    uvx marimo edit --sandbox notebooks/interactive_playground.py
+    ```
+    """)
+    return
+
+
+@app.cell(hide_code=True)
 def license(mo):
     mo.md(r"""
     # The MIT License (MIT)

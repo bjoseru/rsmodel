@@ -74,7 +74,7 @@ Cite the paper and the archived software:
   title     = {{rsmodel}: a resilience--symptom dynamical model of depression},
   year      = {2026},
   publisher = {Zenodo},
-  doi       = {10.5281/zenodo.XXXXXXX},
+  doi       = {10.5281/zenodo.22018288},
   url       = {https://rsmodel.org}
 }
 ```
