@@ -10,7 +10,13 @@ if the two disagree.
 
 ## [Unreleased]
 
-## [0.1.1] — 2026-08-19
+## [0.1.2] — 2026-08-19 needed to acquire zenodo doi
+
+### Changed
+
+- _describe this release_
+
+## [0.1.1] — 2026-08-19 testing CI pipeline
 
 ### Changed
 
@@ -32,6 +38,7 @@ First public release.
 - Continuous deployment of the playground to <https://rsmodel.org>.
 - Publication to PyPI via trusted publishing; archival on Zenodo per release.
 
-[Unreleased]: https://github.com/bjoseru/rsmodel/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/bjoseru/rsmodel/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/bjoseru/rsmodel/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/bjoseru/rsmodel/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/bjoseru/rsmodel/releases/tag/v0.1.0
