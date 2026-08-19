@@ -64,8 +64,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Scan
         run: |
-          if grep -rInE '(pypi-AgEI|ghp_|github_pat_|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY|CLOUDFLARE_API_TOKEN\s*[:=]\s*[A-Za-z0-9_-]{20,})' \
-                 --exclude-dir=.git --exclude-dir=build . ; then
+          # Each literal prefix carries a one-character class -- gh[p]_ matches
+          # a real ghp_ token but not this line. Without that, the scanner finds
+          # its own source and fails every run. Do not "simplify" the brackets.
+          pat='(pypi-A[g]EI|gh[p]_|github[_]pat_|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY|CLOUDFLARE_API_TOKEN\s*[:=]\s*[A-Za-z0-9_-]{20,})'
+          if grep -rInE "$pat" --exclude-dir=.git --exclude-dir=build . ; then
             echo "::error::possible credential found"
             exit 1
           fi
