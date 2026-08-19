@@ -19,59 +19,32 @@
 
 import marimo
 
-__generated_with = "0.23.16"
+__generated_with = "0.24.0"
 app = marimo.App(
     width="medium",
     app_title="The Reslience–Symptom Model of Depression",
-    layout_file="layouts/interactive_playground.slides.json",
 )
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.vstack(
-        [
-            mo.md(r"# A Resilience–Symptom Model of Depression"),
-            mo.md(r"### Björn S. Rüffer & Michael Schönlein"),
-            mo.md(r"#### Bauhaus-Universität Weimar"),
-            mo.md("2026"),
-        ],
-        align="center",
-        justify="space-around",
-        gap=3,
-    )
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
     mo.md(r"""
-    ## Scenarios for individual patients
+    # Resilience&ndash;Symptom Model of Depression
+
+    Use the arrow keys or on-screen controls to navigate slides. Some panels contain interactive elements &mdash; try adjusting the sliders.
     """)
     return
 
 
-@app.cell(hide_code=True)
-def _(mo, stimuli):
-    mo.md(rf"""
-    ### Predefined scenarios
-
-    We consider three fixed scenarios that help explain features of the model. The scenarios are defined by particular external input signals modeling adverse events affecting an individual:
-
-    {"    \n".join(map(lambda s: "- _"+s+"_", stimuli.keys()))}.
-
-    For each input signal, you can investigate how an individual with given initial levels of depression and resilience will react.
-
-    The response typically depends on the combination of these two parameters. For each input signal, both outcomes—recovery ($s$ declines towards zero) and development of severe depression ($s$ approaches $1$)—are possible depending on initial configuration.
-    """)
-    return
-
-
-@app.cell(hide_code=True)
+@app.cell
 def _(Patient, download_buttons, mo, r0_slider, s0_slider, stimuli):
     def scenario_tab(title, stimulus):
-        patient = Patient(s0=s0_slider.value, r0=r0_slider.value)
-        stimulus_response = patient.get_stimulus_response(stimulus)
+        patient = Patient(
+            s0=s0_slider.value, r0=r0_slider.value
+        )
+        stimulus_response = patient.get_stimulus_response(
+            stimulus
+        )
 
         return mo.hstack(
             [
@@ -86,7 +59,9 @@ def _(Patient, download_buttons, mo, r0_slider, s0_slider, stimuli):
                                         mo.md(f"☹️"),
                                         s0_slider,
                                         mo.md(f"🙂"),
-                                        mo.md(f"${s0_slider.value:.2f}$"),
+                                        mo.md(
+                                            f"${s0_slider.value:.2f}$"
+                                        ),
                                     ],
                                     align="center",
                                 ),
@@ -96,7 +71,9 @@ def _(Patient, download_buttons, mo, r0_slider, s0_slider, stimuli):
                                         mo.md(f"🔋"),
                                         r0_slider,
                                         mo.md(f"🪫"),
-                                        mo.md(f"${r0_slider.value:.2f}$"),
+                                        mo.md(
+                                            f"${r0_slider.value:.2f}$"
+                                        ),
                                     ],
                                     align="center",
                                 ),
@@ -113,22 +90,18 @@ def _(Patient, download_buttons, mo, r0_slider, s0_slider, stimuli):
             ],
             widths=[12, 1],
         )
+    
 
-    mo.ui.tabs({k: scenario_tab(k, v) for k, v in stimuli.items()})
-    return
+    mo.vstack([
+                mo.md("""
+                ## Pre-defined scenarios
 
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(rf"""
-    ### Make your own custom scenario
-
-    In the following scenario, you can define an "adverse input" graphically by drawing into a figure. The response of the patient is shown in the plot next to the input figure.
-
-    There are options to adjust the time span of the simulation and whether the custom input should be extended periodically, e.g., to model daily, weekly, or otherwise repeated exposures to adverse circumstances.
-
-    {mo.callout(mo.md("Note that neither the model as a whole nor the time scale are in any way calibrated and should hence be seen as abstractions.\n\n This is a qualitative model, not a quantitative one.\n\n __This model does not consider the possible benefits of medication or interventions.__"), kind='danger')}
-    """)
+                Adjust the sliders on the right-hand-side for different initial levels of (depression) symptom $s_0$ and resilience $r_0$. 
+                Select different adverse input scenarios via the tabs above the figure.
+                """),    
+    mo.ui.tabs(
+        {k: scenario_tab(k, v) for k, v in stimuli.items()}
+    )])
     return
 
 
@@ -145,11 +118,17 @@ def _(
     tf_slider,
 ):
     def custom_scenario():
-        patient = Patient(s0=s0_slider_custom.value, r0=r0_slider_custom.value)
+        patient = Patient(
+            s0=s0_slider_custom.value,
+            r0=r0_slider_custom.value,
+        )
         stimulus_response = patient.get_stimulus_response(
             custom_stimulus,
             t_final=tf_slider.value * num_periods.value,
         )
+
+
+    
         return mo.hstack(
             [
                 mo.vstack(
@@ -167,7 +146,9 @@ def _(
                     [
                         mo.md(rf"$t_f={tf_slider.value}$"),
                         tf_slider,
-                        mo.md(f"""number of repetitions:\n\n$n={num_periods.value}$"""),
+                        mo.md(
+                            f"""number of repetitions:\n\n$n={num_periods.value}$"""
+                        ),
                         num_periods,
                         mo.md(
                             f"simulated time span is thus\n\n $n\\cdot t_f={tf_slider.value * num_periods.value}$"
@@ -180,7 +161,9 @@ def _(
                                         mo.md(f"☹️"),
                                         s0_slider_custom,
                                         mo.md(f"🙂"),
-                                        mo.md(f"${s0_slider_custom.value:.2f}$"),
+                                        mo.md(
+                                            f"${s0_slider_custom.value:.2f}$"
+                                        ),
                                     ],
                                     align="center",
                                 ),
@@ -190,7 +173,9 @@ def _(
                                         mo.md(f"🔋"),
                                         r0_slider_custom,
                                         mo.md(f"🪫"),
-                                        mo.md(f"${r0_slider_custom.value:.2f}$"),
+                                        mo.md(
+                                            f"${r0_slider_custom.value:.2f}$"
+                                        ),
                                     ],
                                     align="center",
                                 ),
@@ -207,50 +192,28 @@ def _(
             ]
         )
 
-    custom_scenario()
+
+    mo.vstack([
+        mo.md("""
+    ## Make your own custom scenario
+
+    In the following scenario, you can define an "adverse input" graphically by drawing into a figure. The response of the patient is shown in the plot next to the input figure.
+
+    There are options to adjust the time span of the simulation and whether the custom input should be extended periodically, e.g., to model daily, weekly, or otherwise repeated exposures to adverse circumstances.
+
+    """
+    ),
+    custom_scenario()    
+    ])
+
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ## Structural analysis of the model
-
-    Here we consider the equilibrium points and streamline plots of the RS model.
+    ## Phase-space view of the RS model
     """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(RSModel, download_buttons, mo, strip_leading_whitespace):
-    def equilibrium_analysis():
-        model = RSModel()
-        equilibria_plot = model.plot_equilibria(samples=300)
-
-        return mo.hstack(
-            [
-                mo.md(f"""{mo.as_html(equilibria_plot)}"""),
-                mo.vstack(
-                    [
-                        mo.md(
-                            strip_leading_whitespace(
-                            rf"""We consider the model
-                            {model}
-                            The figure shows all points $(s,r)$ such that $\dot s = \dot r = 0$ (equilibria). The curve consists of equilibrium points parameterized by $e$.""")
-                        ),
-                        "Download figure as:",
-                        download_buttons(
-                            equilibria_plot,
-                            basename=f"equilibria_{model.model_name.replace(' ', '_')}",
-                        ),
-                    ]
-                ),
-            ],
-            align="center",
-            widths=[3, 1],
-        )
-
-    equilibrium_analysis()
     return
 
 
@@ -283,13 +246,14 @@ def _(
                 [
                     mo.md(
                         strip_leading_whitespace(
-                        rf"""
+                            rf"""
     In this figure we consider the
     {streamline_model}
 
     This __streamline plot__ shows the flow generated by the differential equations when the input is held constant at $$e={streamline_slider.value}.$$
     """
-                    )),
+                        )
+                    ),
                     "Download figure as:",
                     download_buttons(
                         streamline_plot,
@@ -323,7 +287,10 @@ def _():
     from drawdata import BarWidget
     import io
     from rsmodel import RSModel, Patient
-    from rsmodel.utils import get_predefined_scenarios, create_custom_stimulus
+    from rsmodel.utils import (
+        get_predefined_scenarios,
+        create_custom_stimulus,
+    )
     import re
 
     return (
@@ -341,7 +308,9 @@ def _():
 
 @app.cell(hide_code=True)
 def _(io, mo):
-    def download_buttons(axisobject, basename="figure", style="h"):
+    def download_buttons(
+        axisobject, basename="figure", style="h"
+    ):
         """Show three different download buttons."""
         if style == "h":
             arrange = mo.hstack
@@ -349,14 +318,18 @@ def _(io, mo):
             arrange = mo.vstack
         return arrange(
             [
-                download_axisobject(axisobject, basename, format=format)
+                download_axisobject(
+                    axisobject, basename, format=format
+                )
                 for format in "pdf png svg".split()
             ],
             gap=1,
             justify="start",
         )
 
-    def download_axisobject(axisobject, basename="figure", format="pdf"):
+    def download_axisobject(
+        axisobject, basename="figure", format="pdf"
+    ):
         """Useful helper for in-app downloads of figures."""
         mimetypes = {
             "pdf": "application/pdf",
@@ -366,7 +339,9 @@ def _(io, mo):
 
         async def __provide_the_data():
             _buf = io.BytesIO()
-            axisobject.figure.savefig(_buf, format=format, bbox_inches="tight")
+            axisobject.figure.savefig(
+                _buf, format=format, bbox_inches="tight"
+            )
             _buf.seek(0)
             return _buf
 
@@ -388,8 +363,22 @@ def _(get_predefined_scenarios):
 
 @app.cell(hide_code=True)
 def _(mo):
-    s0_slider = mo.ui.slider(0, 1, 1e-2, 0.67, debounce=True, orientation="vertical")
-    r0_slider = mo.ui.slider(0, 1, 1e-2, 0.84, debounce=True, orientation="vertical")
+    s0_slider = mo.ui.slider(
+        0,
+        1,
+        1e-2,
+        0.67,
+        debounce=True,
+        orientation="vertical",
+    )
+    r0_slider = mo.ui.slider(
+        0,
+        1,
+        1e-2,
+        0.84,
+        debounce=True,
+        orientation="vertical",
+    )
     return r0_slider, s0_slider
 
 
@@ -408,10 +397,20 @@ def _(mo):
     tf_slider = mo.ui.slider(7, 40, 1, 40)
     num_periods = mo.ui.slider(1, 10, 1, 1)
     s0_slider_custom = mo.ui.slider(
-        0, 1, 1e-2, 0.67, debounce=True, orientation="vertical"
+        0,
+        1,
+        1e-2,
+        0.67,
+        debounce=True,
+        orientation="vertical",
     )
     r0_slider_custom = mo.ui.slider(
-        0, 1, 1e-2, 0.84, debounce=True, orientation="vertical"
+        0,
+        1,
+        1e-2,
+        0.84,
+        debounce=True,
+        orientation="vertical",
     )
     return num_periods, r0_slider_custom, s0_slider_custom, tf_slider
 
@@ -419,7 +418,12 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(BarWidget, mo):
     stimulus_input = mo.ui.anywidget(
-        BarWidget(height=200, width=700, n_bins=40, collection_names=[])
+        BarWidget(
+            height=200,
+            width=700,
+            n_bins=40,
+            collection_names=[],
+        )
     )
     return (stimulus_input,)
 
@@ -432,16 +436,55 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(create_custom_stimulus, custom_input_data, tf_slider):
-    custom_stimulus = create_custom_stimulus(custom_input_data, period=tf_slider.value)
+    custom_stimulus = create_custom_stimulus(
+        custom_input_data, period=tf_slider.value
+    )
     return (custom_stimulus,)
 
 
 @app.cell(hide_code=True)
 def _(re):
     strip_leading_whitespace = lambda s: "\n".join(
-        re.sub(r"^\s+","", _) for _ in s.splitlines()    
+        re.sub(r"^\s+", "", _) for _ in s.splitlines()
     )
     return (strip_leading_whitespace,)
+
+
+@app.cell(hide_code=True)
+def license(mo):
+    mo.md(r"""
+    # The MIT License (MIT)
+    Copyright © 2026 Björn Rüffer & Michael Schönlein
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def impressum(mo):
+    mo.md(r"""
+    # Impressum &amp; Datenschutzerkl&auml;rung
+
+    __Impressum:__ Prof. Dr. Bj&ouml;rn R&uuml;ffer, Coudraystr. 13B, 99423 Weimar. E-Mail: bjoern.rueffer@uni-weimar.de. Verantwortlich f&uuml;r den Inhalt nach &sect; 5 DDG.
+
+    __Datenschutz:__ Diese Seite speichert selbst keine personenbezogenen Daten. Der Hosting-Anbieter verarbeitet automatisch technische Zugriffsdaten (z.&nbsp;B. IP-Adresse, Zeitstempel) zum Zweck des technischen Betriebs (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO). Kontakt f&uuml;r Datenschutzanfragen: bjoern.rueffer@uni-weimar.de.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(f"""
+    # Disclaimer
+
+    {mo.callout(mo.md("Note that neither the model as a whole nor the time scale are in any way calibrated and should hence be seen as abstractions.\n\n This is a qualitative model, not a quantitative one.\n\n __This model does not consider the possible benefits of medication or interventions.__"), kind="danger")}
+    """)
+    return
 
 
 @app.cell
