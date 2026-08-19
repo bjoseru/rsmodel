@@ -1,0 +1,82 @@
+name: Release
+
+# Triggered by a version tag, e.g.:
+#     git tag -a v0.2.0 -m "rsmodel 0.2.0" && git push origin v0.2.0
+#
+# 1. verifies the tag matches rsmodel.__version__
+# 2. builds sdist + wheel
+# 3. publishes to PyPI via Trusted Publishing (OIDC -- no token anywhere)
+# 4. creates a GitHub Release, which Zenodo archives and mints a DOI for
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build distributions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v8
+
+      - name: Tag must match rsmodel.__version__
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' rsmodel/rsmodel/__init__.py)"
+          test -n "$pkg" || { echo "::error::no __version__ in rsmodel/rsmodel/__init__.py"; exit 1; }
+          test "$tag" = "$pkg" || { echo "::error::tag $GITHUB_REF_NAME does not match __version__ $pkg"; exit 1; }
+          echo "releasing rsmodel $pkg"
+
+      # --no-sources proves the package builds without [tool.uv.sources] overrides
+      - name: Build
+        run: uv build --no-sources rsmodel --out-dir dist
+
+      - name: Installable from the built wheel
+        run: uv run --isolated --no-project --with dist/*.whl python -c "import rsmodel; print(rsmodel.__version__)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  pypi:
+    name: Publish to PyPI
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/rsmodel
+    permissions:
+      id-token: write   # OIDC token for PyPI Trusted Publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: astral-sh/setup-uv@v8
+      - run: uv publish --trusted-publishing always dist/*
+
+  github-release:
+    name: GitHub Release (Zenodo archives this)
+    needs: pypi
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "rsmodel ${GITHUB_REF_NAME#v}" \
+            --generate-notes \
+            --verify-tag

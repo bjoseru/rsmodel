@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Package builds and imports
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v8
+      - run: uv build --no-sources rsmodel --out-dir dist
+      - name: Smoke test
+        run: |
+          uv run --isolated --no-project --python ${{ matrix.python }} --with dist/*.whl python - <<'PY'
+          from rsmodel import RSModel, Patient
+          from rsmodel.analysis import compute_jacobian
+          m = RSModel()
+          print(m.rhs(_r=0.84, _s=0.67, _e=0.3))
+          print(compute_jacobian(m).shape)
+          PY
+
+  site:
+    name: Static export builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v8
+        with:
+          enable-cache: true
+      # no --execute: this job only proves the bundle/export/verify pipeline works
+      - run: uv run tools/export_playground.py --no-hint -o build/site
+
+  notebooks:
+    name: Notebook headers resolve from PyPI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # A [tool.uv.sources] path override makes `uvx marimo edit --sandbox` work
+      # only inside a checkout. Handy while developing rsmodel, never committed.
+      - name: No local path overrides in PEP 723 headers
+        run: |
+          if grep -l "tool.uv.sources" notebooks/*.py; then
+            echo "::error::a notebook header still points rsmodel at a local path"
+            echo "run: uv remove --script <notebook> rsmodel && uv add --script <notebook> 'rsmodel>=0.1'"
+            exit 1
+          fi
+          echo "all notebook headers resolve rsmodel from PyPI"
+
+  secrets:
+    name: No credentials in the tree
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan
+        run: |
+          if grep -rInE '(pypi-AgEI|ghp_|github_pat_|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY|CLOUDFLARE_API_TOKEN\s*[:=]\s*[A-Za-z0-9_-]{20,})' \
+                 --exclude-dir=.git --exclude-dir=build . ; then
+            echo "::error::possible credential found"
+            exit 1
+          fi
+          echo "clean"

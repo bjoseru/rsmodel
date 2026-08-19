@@ -4,17 +4,16 @@
 #     "marimo",
 #     "matplotlib>=3.8",
 #     "numpy>=1.24",
-#     "rsmodel",
+#     "rsmodel>=0.1",
 #     "scipy>=1.11",
 #     "sympy>=1.12",
 # ]
-#
-# [tool.uv.sources]
-# rsmodel = { path = "../rsmodel", editable = true }
 # ///
 
-# Run without any local Python setup beyond `uv` (from rs-depression-model/):
+# Run with nothing installed but `uv`, from the repository root:
 #   uvx marimo edit --sandbox notebooks/all_figures.py
+# `--sandbox` builds a throwaway environment from the PEP 723 header above,
+# which pulls rsmodel from PyPI. See the README for the local-checkout variant.
 #
 # All figures used in the manuscript are written to ./figures
 

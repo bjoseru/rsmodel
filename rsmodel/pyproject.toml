@@ -10,7 +10,7 @@ authors = [
     { name = "Michael Schönlein" },
 ]
 maintainers = [
-    { name = "Björn S. Rüffer", email = "bjoern.rueffer@gmail.com" },
+    { name = "Björn S. Rüffer", email = "bjoern.rueffer@uni-weimar.de" },
 ]
 keywords = [
     "depression",
@@ -41,9 +41,11 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/bjoseru/rsmodel"
+Homepage = "https://rsmodel.org"
+Playground = "https://rsmodel.org"
 Repository = "https://github.com/bjoseru/rsmodel"
 Issues = "https://github.com/bjoseru/rsmodel/issues"
+Changelog = "https://github.com/bjoseru/rsmodel/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["hatchling"]

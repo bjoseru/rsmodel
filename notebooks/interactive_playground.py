@@ -5,24 +5,23 @@
 #     "marimo",
 #     "matplotlib>=3.8",
 #     "numpy>=1.24",
-#     "rsmodel",
+#     "rsmodel>=0.1",
 #     "scipy>=1.11",
 #     "sympy>=1.12",
 # ]
-#
-# [tool.uv.sources]
-# rsmodel = { path = "../rsmodel", editable = true }
 # ///
 
-# Run without any local Python setup beyond `uv` (from rs-depression-model/):
+# Run with nothing installed but `uv`, from the repository root:
 #   uvx marimo edit --sandbox notebooks/interactive_playground.py
+# `--sandbox` builds a throwaway environment from the PEP 723 header above,
+# which pulls rsmodel from PyPI. See the README for the local-checkout variant.
 
 import marimo
 
 __generated_with = "0.24.0"
 app = marimo.App(
     width="medium",
-    app_title="The Reslience–Symptom Model of Depression",
+    app_title="The Resilience–Symptom Model of Depression",
 )
 
 
@@ -472,7 +471,7 @@ def impressum(mo):
 
     __Impressum:__ Prof. Dr. Bj&ouml;rn R&uuml;ffer, Coudraystr. 13B, 99423 Weimar. E-Mail: bjoern.rueffer@uni-weimar.de. Verantwortlich f&uuml;r den Inhalt nach &sect; 5 DDG.
 
-    __Datenschutz:__ Diese Seite speichert selbst keine personenbezogenen Daten. Der Hosting-Anbieter verarbeitet automatisch technische Zugriffsdaten (z.&nbsp;B. IP-Adresse, Zeitstempel) zum Zweck des technischen Betriebs (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO). Kontakt f&uuml;r Datenschutzanfragen: bjoern.rueffer@uni-weimar.de.
+    __Datenschutz:__ Diese Seite ist eine statische Anwendung. Sie setzt keine Cookies, verwendet keine Analyse- oder Tracking-Dienste und speichert selbst keine personenbezogenen Daten. Gehostet wird sie &uuml;ber Cloudflare Pages (Cloudflare, Inc., 101 Townsend St., San Francisco, CA 94107, USA); dabei werden technische Zugriffsdaten (z.&nbsp;B. IP-Adresse, Zeitstempel, angeforderte Ressource) automatisch verarbeitet, um die Auslieferung technisch zu erm&ouml;glichen und abzusichern (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO). Zur Ausf&uuml;hrung des Python-Codes im Browser l&auml;dt die Seite die Laufzeitumgebung Pyodide vom Content-Delivery-Network jsDelivr sowie eine Paketliste von `wasm.marimo.app` nach; dabei wird Ihre IP-Adresse an die jeweiligen Anbieter &uuml;bermittelt. Die &Uuml;bermittlung in Drittl&auml;nder erfolgt auf Grundlage der EU-Standardvertragsklauseln. Kontakt f&uuml;r Datenschutzanfragen: bjoern.rueffer@uni-weimar.de.
     """)
     return
 

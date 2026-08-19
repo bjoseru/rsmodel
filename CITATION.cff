@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the software (this file) and the accompanying paper."
+title: "rsmodel: a resilience-symptom dynamical model of depression"
+abstract: >-
+  Reference implementation and interactive companion of the resilience-symptom
+  (RS) model, a qualitative two-state dynamical model of the interaction between
+  depressive symptoms and psychological resilience under external adversity.
+type: software
+authors:
+  - family-names: "Rüffer"
+    given-names: "Björn S."
+    affiliation: "Bauhaus-Universität Weimar"
+  - family-names: "Schönlein"
+    given-names: "Michael"
+version: 0.1.0
+date-released: "2026-08-19"
+license: MIT
+repository-code: "https://github.com/bjoseru/rsmodel"
+url: "https://rsmodel.org"
+keywords:
+  - depression
+  - resilience
+  - dynamical systems
+  - mathematical psychology
+  - ordinary differential equations
+  - stability analysis
+# doi: 10.5281/zenodo.XXXXXXX   # concept DOI -- fill in after the first Zenodo archive
+preferred-citation:
+  type: article
+  title: "A mathematical model for depression and resilience"
+  authors:
+    - family-names: "Rüffer"
+      given-names: "Björn S."
+    - family-names: "Schönlein"
+      given-names: "Michael"
+  year: 2026

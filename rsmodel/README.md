@@ -18,6 +18,8 @@ This is the reference implementation for
 > Björn S. Rüffer & Michael Schönlein, *A mathematical model for depression and
 > resilience*.
 
+**Interactive playground, no installation required: <https://rsmodel.org>**
+
 > **Warning**
 > Neither the model nor its time scale is calibrated against clinical data. This is a
 > qualitative model, not a quantitative one, and it does not represent the effects of
@@ -58,8 +60,24 @@ analyze_corner_equilibria(RSModel(), e_value=0.5)   # stability of the four corn
 ## Interactive notebooks
 
 The repository ships three [marimo](https://marimo.io) notebooks — an interactive
-playground, the full symbolic analysis, and a script that regenerates every figure in the
-manuscript. See <https://github.com/bjoseru/rsmodel> for details.
+playground (also published at <https://rsmodel.org>), the full symbolic analysis, and a
+script that regenerates every figure in the manuscript. See
+<https://github.com/bjoseru/rsmodel> for details.
+
+## Citation
+
+Cite the paper and the archived software:
+
+```bibtex
+@misc{rueffer_schoenlein_rsmodel_software,
+  author    = {R{\"u}ffer, Bj{\"o}rn S. and Sch{\"o}nlein, Michael},
+  title     = {{rsmodel}: a resilience--symptom dynamical model of depression},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.XXXXXXX},
+  url       = {https://rsmodel.org}
+}
+```
 
 ## License
 

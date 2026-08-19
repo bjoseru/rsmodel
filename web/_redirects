@@ -1,0 +1,3 @@
+# Canonical host: rsmodel.org. Add www.rsmodel.org as a second custom domain in
+# the Cloudflare Pages project for this to take effect.
+https://www.rsmodel.org/* https://rsmodel.org/:splat 301

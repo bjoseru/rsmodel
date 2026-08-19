@@ -1,0 +1,43 @@
+{
+  "title": "rsmodel: a resilience-symptom dynamical model of depression",
+  "description": "<p>Reference implementation and interactive companion of the resilience&ndash;symptom (RS) model, a qualitative two-state dynamical model of the interaction between depressive symptoms and psychological resilience under external adversity.</p><p>The repository contains the installable <code>rsmodel</code> Python package, three marimo notebooks (interactive playground, symbolic analysis, figure generation) and the tooling that publishes the playground as a WebAssembly application at <a href=\"https://rsmodel.org\">rsmodel.org</a>.</p><p><strong>Warning:</strong> neither the model nor its time scale is calibrated against clinical data. This is a qualitative model, not a quantitative one, it does not represent the effects of medication or of any other intervention, and it is not a diagnostic or clinical tool.</p>",
+  "upload_type": "software",
+  "license": "mit",
+  "access_right": "open",
+  "creators": [
+    {
+      "name": "Rüffer, Björn S.",
+      "affiliation": "Bauhaus-Universität Weimar"
+    },
+    {
+      "name": "Schönlein, Michael"
+    }
+  ],
+  "keywords": [
+    "depression",
+    "resilience",
+    "dynamical systems",
+    "mathematical psychology",
+    "ordinary differential equations",
+    "stability analysis",
+    "marimo",
+    "WebAssembly"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/bjoseru/rsmodel",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://rsmodel.org",
+      "relation": "isIdenticalTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://pypi.org/project/rsmodel/",
+      "relation": "isIdenticalTo",
+      "scheme": "url"
+    }
+  ]
+}

@@ -23,6 +23,9 @@ Three things happen, in order:
 3. Verify.  index.html is parsed back and checked: run mode, code hidden, slides
    layout present with one entry per cell, rsmodel actually embedded. A silent
    half-broken export is worse than a loud failure.
+
+Anything in web/ (_headers, _redirects) is copied into the export root for
+Cloudflare Pages. Other hosts ignore those files.
 """
 
 from __future__ import annotations
@@ -48,8 +51,12 @@ MODULES = ["core", "utils", "analysis", "__init__"]
 
 DEFAULT_NOTEBOOK = ROOT / "notebooks" / "interactive_playground.py"
 DEFAULT_OUTPUT = ROOT / "build" / "site"
+WEB_DIR = ROOT / "web"  # _headers, _redirects -- host config, copied verbatim
 
 HEADER_RE = re.compile(r"\A# /// script\n.*?^# ///\n", re.DOTALL | re.MULTILINE)
+DEP_RE = re.compile(r'^#\s*"([^"]+)",?\s*$', re.MULTILINE)
+DEPS_BLOCK_RE = re.compile(r"^#\s*dependencies\s*=\s*\[(.*?)^#\s*\]", re.DOTALL | re.MULTILINE)
+PYVER_RE = re.compile(r'^#\s*requires-python\s*=\s*"[^0-9]*(\d+\.\d+)', re.MULTILINE)
 APP_RE = re.compile(r"^app = marimo\.App\((.*?)\)\n", re.DOTALL | re.MULTILINE)
 RUNCOMMENT_RE = re.compile(r"\A\s*(?:^#[^\n]*\n)+\s*(?=import marimo\n)", re.MULTILINE)
 SETUP_RE = re.compile(r"^with app\.setup:\n", re.MULTILINE)
@@ -209,14 +216,69 @@ def bundle(notebook: Path, staging: Path) -> tuple[Path, int, int]:
 # --------------------------------------------------------------------------- #
 
 
-def export(notebook: Path, output: Path, *, show_code: bool, execute: bool) -> None:
+def notebook_dependencies(text: str) -> list[str]:
+    """The PEP 723 `dependencies = [...]` entries of a notebook, as requirements."""
+    m = HEADER_RE.match(text)
+    if not m:
+        return []
+    block = DEPS_BLOCK_RE.search(m.group(0))
+    if not block:
+        return []
+    return DEP_RE.findall(block.group(0))
+
+
+def notebook_python(text: str) -> str | None:
+    """The lower bound of the notebook's `requires-python`, e.g. "3.12"."""
+    m = HEADER_RE.match(text)
+    if not m:
+        return None
+    v = PYVER_RE.search(m.group(0))
+    return v.group(1) if v else None
+
+
+def marimo_command(deps: list[str], python: str | None = None) -> list[str]:
+    """How to invoke marimo.
+
+    Without --execute the notebook is only parsed, so this interpreter's own
+    marimo is enough. With --execute marimo *runs* every cell, which needs the
+    notebook's own dependencies (numpy, matplotlib, drawdata, ...). Rather than
+    demand a pre-built environment, hand that to uv: it is already the single
+    prerequisite of this repository.
+    """
+    if not deps:
+        return [sys.executable, "-m", "marimo"]
+    uv = shutil.which("uv")
+    if uv is None:
+        raise ExportError(
+            "--execute needs `uv` on PATH to build an environment with the "
+            "notebook's dependencies (" + ", ".join(deps) + ")"
+        )
+    cmd = [uv, "run", "--isolated", "--no-project"]
+    if python:
+        cmd += ["--python", python]
+    cmd += ["--with", "marimo"]
+    for d in deps:
+        cmd += ["--with", d]
+    return cmd + ["python", "-m", "marimo"]
+
+
+def export(
+    notebook: Path,
+    output: Path,
+    *,
+    show_code: bool,
+    execute: bool,
+    deps: list[str],
+    python: str | None = None,
+) -> None:
     """Run `marimo export html-wasm` into `output`."""
     if output.exists():
         shutil.rmtree(output)  # stale assets from an older marimo are a real hazard
     output.mkdir(parents=True, exist_ok=True)
 
-    cmd = [
-        sys.executable, "-m", "marimo", "export", "html-wasm",
+    cmd = marimo_command(deps if execute else [], python)
+    cmd += [
+        "export", "html-wasm",
         "--mode", "run",
         "--show-code" if show_code else "--no-show-code",
         "-o", str(output),
@@ -232,6 +294,23 @@ def export(notebook: Path, output: Path, *, show_code: bool, execute: bool) -> N
             "marimo export failed:\n"
             + (proc.stderr or proc.stdout or "").strip()[-2000:]
         )
+
+
+def copy_host_config(output: Path) -> list[str]:
+    """Copy web/_headers and web/_redirects into the export root.
+
+    Cloudflare Pages reads these from the deployment root; every other host
+    ignores them, so this is safe unconditionally.
+    """
+    notes: list[str] = []
+    if not WEB_DIR.is_dir():
+        return notes
+    for name in ("_headers", "_redirects"):
+        src = WEB_DIR / name
+        if src.exists():
+            shutil.copy2(src, output / name)
+            notes.append(f"web/{name} copied into the site root")
+    return notes
 
 
 # --------------------------------------------------------------------------- #
@@ -253,7 +332,8 @@ def verify(output: Path, cells: int, layout_entries: int) -> list[str]:
     notes.append("opens in run mode")
 
     show = re.search(r'"showAppCode":\s*(\w+)', h)
-    notes.append(f"code hidden by default: {show.group(1) if show else 'unknown'}")
+    state = {"false": "hidden", "true": "shown"}.get(show.group(1) if show else "", "unknown")
+    notes.append(f"code is {state} by default")
 
     if layout_entries:
         lm = re.search(r'"layout_file":\s*"data:[^,]+,([^"]+)"', h)
@@ -307,23 +387,26 @@ def serve(output: Path, port: int) -> None:
 
 
 DEPLOY_HINT = """
-Next steps — publishing to GitHub Pages
----------------------------------------
-The site is fully static and every asset path is relative, so it works both at
-a user site (user.github.io) and a project site (user.github.io/repo/).
+Next steps -- publishing to Cloudflare Pages
+--------------------------------------------
+The site is fully static and every asset path is relative, so it works at
+rsmodel.org, at a *.pages.dev preview URL, or under any subpath.
 
   A. GitHub Actions (recommended: nothing generated is committed)
-     .github/workflows/pages.yml in this repo already does it. Enable it once
-     under Settings -> Pages -> Source -> GitHub Actions, then push.
+     .github/workflows/site.yml builds and deploys on every push to main that
+     touches notebooks/, rsmodel/rsmodel/, tools/ or web/. It needs two
+     repository secrets: CLOUDFLARE_API_TOKEN (scoped to Cloudflare Pages ->
+     Edit) and CLOUDFLARE_ACCOUNT_ID. Neither is ever committed.
 
-  B. Manual, no Actions
-     Export straight into a committed folder and serve that:
-         uv run tools/export_playground.py -o docs
-         git add -f docs && git commit -m "publish site" && git push
-     Then Settings -> Pages -> Source -> Deploy from a branch -> main + /docs.
+  B. Straight from this machine
+         npx wrangler pages deploy build/site --project-name=rsmodel
+     Wrangler stores its own OAuth credentials outside the repository.
 
 Notes
-  * Pages on a private repo needs a paid GitHub plan; a public repo is free.
+  * web/_headers and web/_redirects were copied into the site root; Cloudflare
+    Pages picks them up automatically.
+  * Cloudflare Pages free tier: unlimited bandwidth, 20,000 files and 25 MiB
+    per file per deployment. This export is well inside all three.
   * The first browser load fetches Pyodide (~10-30 MB) from a CDN. Slow once,
     then cached.
   * Test locally before publishing: --serve. Opening index.html as a file://
@@ -359,6 +442,7 @@ def main() -> int:
             staging = Path(tmp)
             print(f"bundling {notebook.name} + rsmodel ...")
             bundled, cells, layout_entries = bundle(notebook, staging)
+            bundled_text = bundled.read_text(encoding="utf-8")
             print(f"  {cells} cells, {len(MODULES)} rsmodel modules inlined")
 
             print(f"exporting to {args.output} ...")
@@ -367,10 +451,14 @@ def main() -> int:
                 args.output,
                 show_code=args.show_code,
                 execute=args.execute,
+                deps=notebook_dependencies(bundled_text),
+                python=notebook_python(bundled_text),
             )
 
         print("verifying ...")
-        for note in verify(args.output, cells, layout_entries):
+        for note in copy_host_config(args.output) + verify(
+            args.output, cells, layout_entries
+        ):
             print(f"  {'! ' if note.startswith('WARNING') else 'ok '}{note}")
     except ExportError as e:
         print(f"\nerror: {e}", file=sys.stderr)

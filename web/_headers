@@ -1,0 +1,22 @@
+# Cloudflare Pages response headers. Copied verbatim into the export root by
+# tools/export_playground.py. Ignored by any other host.
+#
+# No Content-Security-Policy on purpose: Pyodide needs 'unsafe-eval' plus
+# 'wasm-unsafe-eval' and fetches its runtime from cdn.jsdelivr.net, so a CSP
+# tight enough to be worth having would break the notebook.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()
+
+# Hashed build assets never change under the same name.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The notebook payload lives here, so it must not go stale.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
