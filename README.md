@@ -1,7 +1,7 @@
 # A Resilience–Symptom Model of Depression
 
 [![playground](https://img.shields.io/badge/playground-rsmodel.org-2f6f4e)](https://rsmodel.org)
-[![PyPI](https://img.shields.io/pypi/v/rsmodel)](https://pypi.org/project/rsmodel/)
+[![PyPI](https://img.shields.io/pypi/v/rsmodel.svg?label=PyPI&color=0073b7)](https://pypi.org/project/rsmodel/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22018288.svg)](https://doi.org/10.5281/zenodo.22018288)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
