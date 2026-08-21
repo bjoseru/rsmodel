@@ -10,6 +10,12 @@ if the two disagree.
 
 ## [Unreleased]
 
+## [0.1.4] — 2026-08-21 add tex/tikz figures
+
+### Changed
+
+- _describe this release_
+
 ## [0.1.3] — 2026-08-19 we now have a DOI
 
 ### Changed
@@ -44,7 +50,8 @@ First public release.
 - Continuous deployment of the playground to <https://rsmodel.org>.
 - Publication to PyPI via trusted publishing; archival on Zenodo per release.
 
-[Unreleased]: https://github.com/bjoseru/rsmodel/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/bjoseru/rsmodel/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/bjoseru/rsmodel/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/bjoseru/rsmodel/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/bjoseru/rsmodel/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/bjoseru/rsmodel/compare/v0.1.0...v0.1.1
